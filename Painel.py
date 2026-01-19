@@ -13,9 +13,9 @@ st.info(
 )
 
 st.page_link(
-    "pages/1-Segmentacao_RFM.py",
-    label="Segmentação de Clientes (RFM)",
-    icon="👥",
+    "pages/1-Predicao_de_Salario_por_Estudos.py",
+    label="Predição de Salário por Estudos",
+    icon="🎓",
     use_container_width=True,
 )
 

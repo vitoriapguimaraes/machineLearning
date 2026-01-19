@@ -159,7 +159,9 @@ def show_grouped_metrics(df, grouped_columns):
                 st.info(f"Nenhuma coluna disponível para o grupo: {group_title}")
 
 
-def show_univariate_grid(df, numeric_cols, categorical_cols, target_col="Categoria"):
+def show_univariate_grid(
+    df, numeric_cols, categorical_cols, target_col="Categoria", num_cols=3
+):
     """
     Exibe uma grade com histogramas de todas as colunas.
     """
@@ -171,9 +173,9 @@ def show_univariate_grid(df, numeric_cols, categorical_cols, target_col="Categor
         if target_col in all_cols:
             all_cols.remove(target_col)
 
-        cols = st.columns(3)
+        cols = st.columns(num_cols)
         for i, col in enumerate(all_cols):
-            with cols[i % 3]:
+            with cols[i % num_cols]:
                 fig_all = px.histogram(
                     df,
                     x=col,
@@ -188,30 +190,56 @@ def show_univariate_grid(df, numeric_cols, categorical_cols, target_col="Categor
                     margin=dict(l=0, r=0, t=30, b=0),
                     yaxis_title=None,
                 )
-                st.plotly_chart(fig_all, use_container_width=True)
+                st.plotly_chart(
+                    fig_all, use_container_width=True, key=f"univariate_{col}"
+                )
 
 
-def show_bivariate_grid(df, numeric_cols, target_col="Categoria"):
+def plot_regression(
+    df,
+    x_col,
+    y_col,
+    model,
+    title="Regressão Linear",
+    x_label="Horas de Estudo",
+    y_label="Salário",
+):
     """
-    Exibe uma grade com boxplots de todas as colunas numéricas contra o target.
+    Plot the scatter plot of data and the regression line.
+
+    Args:
+        df: DataFrame containing the data.
+        x_col: Name of the column for x-axis.
+        y_col: Name of the column for y-axis.
+        model: Trained LinearRegression model.
     """
-    with st.container(border=True):
-        st.subheader("Todas as Análises Bivariadas")
-        cols = st.columns(3)
-        for i, col in enumerate(numeric_cols):
-            with cols[i % 3]:
-                fig_all = px.box(
-                    df,
-                    x=target_col,
-                    y=col,
-                    color=target_col,
-                    title=f"{col} vs {target_col}",
-                    color_discrete_sequence=COLOR_PALETTE,
-                )
-                fig_all.update_layout(
-                    showlegend=False,
-                    height=300,
-                    margin=dict(l=0, r=0, t=30, b=0),
-                    xaxis_title=None,
-                )
-                st.plotly_chart(fig_all, use_container_width=True)
+    import numpy as np
+    import plotly.graph_objects as go
+
+    # Create Scatter plot for actual data
+    fig = px.scatter(
+        df,
+        x=x_col,
+        y=y_col,
+        title=title,
+        labels={x_col: x_label, y_col: y_label},
+        color_discrete_sequence=[COLOR_PALETTE[0]],
+    )
+
+    # Add Regression Line
+    # Generate a range of X values for the line
+    x_range = np.linspace(df[x_col].min(), df[x_col].max(), 100).reshape(-1, 1)
+    y_range = model.predict(x_range)
+
+    fig.add_trace(
+        go.Scatter(
+            x=x_range.flatten(),
+            y=y_range,
+            mode="lines",
+            name="Regressão Linear",
+            line=dict(color=COLOR_PALETTE[1], width=3),
+        )
+    )
+
+    fig.update_layout(height=500)
+    st.plotly_chart(fig, use_container_width=True)
