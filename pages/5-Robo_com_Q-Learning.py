@@ -113,6 +113,55 @@ df = load_data()
 if df.empty:
     st.stop()
 
+
+def run_test_simulation(agent, data, dates, window_size):
+    data_length = len(data) - 1
+    state = agent.get_state(data, 0, window_size + 1)
+    total_profit = 0
+    agent.inventory = []
+
+    buy_signals = []
+    sell_signals = []
+    history_data = []
+
+    for t in range(data_length):
+        action = agent.act(state, is_eval=True)
+        next_state = agent.get_state(data, t + 1, window_size + 1)
+
+        current_price = data[t]
+        current_date = dates[t]
+
+        if action == 1:  # Buy
+            agent.inventory.append(current_price)
+            buy_signals.append((current_date, current_price))
+            history_data.append(
+                {
+                    "Data": current_date.strftime("%d/%m/%Y"),
+                    "Operação": "COMPRA",
+                    "Preço": f"{current_price:.2f}",
+                    "Lucro": None,
+                }
+            )
+
+        elif action == 2 and len(agent.inventory) > 0:  # Sell
+            bought_price = agent.inventory.pop(0)
+            profit = current_price - bought_price
+            total_profit += profit
+            sell_signals.append((current_date, current_price))
+            history_data.append(
+                {
+                    "Data": current_date.strftime("%d/%m/%Y"),
+                    "Operação": "VENDA",
+                    "Preço": f"{current_price:.2f}",
+                    "Lucro": f"{profit:.2f}",
+                }
+            )
+
+        state = next_state
+
+    return total_profit, buy_signals, sell_signals, history_data
+
+
 # Data Split
 train_size = int(len(df) * 0.8)
 train_data = list(df["Close"][:train_size])
@@ -248,7 +297,6 @@ with tab2:
 
                 if done:
                     profit_history.append(total_profit)
-                    # print(f"Episode {e}/{episodes} done. Profit: {total_profit}")
 
             progress_bar.progress(e / episodes if episodes > 0 else 1)
             status_text.text(
@@ -283,44 +331,9 @@ with tab3:
             "⚠️ Você precisa treinar o robô primeiro na aba 'Treinamento do Robô'."
         )
     else:
-        # if st.button("Executar Teste"):
-        agent = st.session_state.agent
-        data = test_data
-        data_length = len(data) - 1
-        state = agent.get_state(data, 0, window_size + 1)
-        total_profit = 0
-        agent.inventory = []
-
-        buy_signals = []
-        sell_signals = []
-        history = []
-
-        # Simulation Loop
-        for t in range(data_length):
-            action = agent.act(state, is_eval=True)
-            next_state = agent.get_state(data, t + 1, window_size + 1)
-
-            current_price = data[t]
-            current_date = test_dates[t]
-
-            if action == 1:  # Buy
-                agent.inventory.append(current_price)
-                buy_signals.append((current_date, current_price))
-                history.append(
-                    f"🟢 [COMPRA] Dia {current_date.strftime('%d/%m/%Y')} @ {format_currency(current_price)}"
-                )
-
-            elif action == 2 and len(agent.inventory) > 0:  # Sell
-                bought_price = agent.inventory.pop(0)
-                profit = current_price - bought_price
-                total_profit += profit
-                sell_signals.append((current_date, current_price))
-                icon = "💰" if profit > 0 else "🔻"
-                history.append(
-                    f"{icon} [VENDA]  Dia {current_date.strftime('%d/%m/%Y')} @ {format_currency(current_price)} | Lucro: {format_currency(profit)}"
-                )
-
-            state = next_state
+        total_profit, buy_signals, sell_signals, history_data = run_test_simulation(
+            st.session_state.agent, test_data, test_dates, window_size
+        )
 
         # Results
         col1, col2 = st.columns(2)
@@ -341,15 +354,12 @@ with tab3:
             )
 
         # Visualization
-        st.divider()
-        st.markdown("### 📉 Comportamento do Agente no Gráfico")
-
         fig_test = go.Figure()
         # Price Line
         fig_test.add_trace(
             go.Scatter(
                 x=test_dates,
-                y=data,
+                y=test_data,
                 mode="lines",
                 name="Preço Ação",
                 line=dict(color="gray", width=1),
@@ -386,6 +396,23 @@ with tab3:
         st.plotly_chart(fig_test, use_container_width=True)
 
         # Log
-        with st.expander("📜 Log Detalhado das Operações"):
-            for h in history:
-                st.write(h)
+        with st.expander("Log Detalhado das Operações"):
+            if history_data:
+                df_log = pd.DataFrame(history_data)
+
+                def style_profit(val):
+                    if val is None:
+                        return ""
+                    try:
+                        v = float(val)
+                        return "color: green" if v > 0 else "color: red"
+                    except Exception:
+                        return ""
+
+                st.dataframe(
+                    df_log.style.map(style_profit, subset=["Lucro"]),
+                    use_container_width=True,
+                    hide_index=True,
+                )
+            else:
+                st.info("Nenhuma operação realizada no período.")
