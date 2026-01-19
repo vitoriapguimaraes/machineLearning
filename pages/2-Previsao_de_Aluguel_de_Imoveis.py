@@ -44,8 +44,6 @@ with tab_overview:
         ### Entendendo o Problema
         Este projeto aplica técnicas de **Regressão Linear Simples** para investigar a relação entre a área dos imóveis (em metros quadrados) e o valor do aluguel em uma cidade.
         O objetivo é prever o valor do aluguel a partir da área do imóvel.
-
-        **Destaques:**
         - **Variável Independente (X):** Área do imóvel (m²).
         - **Variável Dependente (y):** Valor do aluguel.
         """

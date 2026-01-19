@@ -43,8 +43,6 @@ with tab_overview:
         """
         ### Entendendo o Problema
         Este projeto tem como objetivo prever o salário mensal com base no número de horas de estudo dedicadas por mês. É utilizado um modelo de **Regressão Linear Simples** para identificar a relação entre o esforço de estudo e a recompensa financeira.
-
-        **Destaques:**
         - **Variável Independente (X):** Horas de estudo por mês.
         - **Variável Dependente (y):** Salário mensal.
         """
