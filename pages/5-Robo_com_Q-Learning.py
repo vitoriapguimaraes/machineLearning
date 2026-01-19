@@ -6,12 +6,9 @@ import random
 from utils.load_file import load_dataset
 from utils.ui import setup_sidebar, add_back_to_top
 
-# ==========================================
-# Configuração da Página
-# ==========================================
-st.set_page_config(page_title="Trading com Q-Learning", page_icon="📈", layout="wide")
+st.set_page_config(page_title="Trading com Q-Learning", page_icon="🖥️", layout="wide")
 
-st.title("Robô de Trading com Q-Learning")
+st.title("🖥️ Robô de Trading com Q-Learning")
 
 setup_sidebar()
 add_back_to_top()

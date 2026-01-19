@@ -40,6 +40,20 @@ st.page_link(
     use_container_width=True,
 )
 
+st.page_link(
+    "pages/5-Robo_com_Q-Learning.py",
+    label="Robô com Q-Learning",
+    icon="🖥️",
+    use_container_width=True,
+)
+
+st.page_link(
+    "pages/6-Rotatividade_de_Funcionarios.py",
+    label="Rotatividade de Funcionários",
+    icon="👤",
+    use_container_width=True,
+)
+
 st.markdown("---")
 
 st.subheader("Ferramentas Utilizadas")
