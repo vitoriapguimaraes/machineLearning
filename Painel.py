@@ -13,9 +13,16 @@ st.info(
 )
 
 st.page_link(
-    "pages/1-Predicao_de_Salario_por_Estudos.py",
-    label="Predição de Salário por Estudos",
+    "pages/1-Previsao_de_Salario_por_Estudos.py",
+    label="Previsão de Salário por Estudos",
     icon="🎓",
+    use_container_width=True,
+)
+
+st.page_link(
+    "pages/2-Previsao_de_Aluguel_de_Imoveis.py",
+    label="Previsão de Aluguel de Imóveis",
+    icon="🏠",
     use_container_width=True,
 )
 

@@ -8,13 +8,13 @@ from utils.visualizations import (
 from utils.models import train_salary_model, predict_salary
 
 st.set_page_config(
-    page_title="Predição de Salário por Estudos", page_icon="🎓", layout="wide"
+    page_title="Previsão de Salário por Estudos", page_icon="🎓", layout="wide"
 )
 
 setup_sidebar()
 add_back_to_top()
 
-st.title("🎓 Predição de Salário por Estudos")
+st.title("🎓 Previsão de Salário por Estudos")
 
 # Data Loading
 try:
@@ -35,7 +35,7 @@ model = model_data["model"]
 
 # Tabs
 tab_overview, tab_analysis, tab_prediction = st.tabs(
-    ["Visão Geral", "Análise", "Predição"]
+    ["Visão Geral", "Análise", "Previsão"]
 )
 
 with tab_overview:
