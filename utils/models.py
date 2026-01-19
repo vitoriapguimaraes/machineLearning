@@ -1,6 +1,9 @@
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from statsmodels.tsa.holtwinters import SimpleExpSmoothing
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
+from sklearn.metrics import accuracy_score
 import pandas as pd
 import numpy as np
 
@@ -178,3 +181,113 @@ def predict_sales(model_data, days=31):
     model = model_data["model"]
     forecast = model.forecast(days)
     return forecast
+
+
+def train_credit_model(df):
+    """
+    Trains a Random Forest Classifier for credit score prediction.
+
+    Args:
+        df: DataFrame containing customer data.
+
+    Returns:
+        dict: A dictionary containing the trained model, encoders, and metrics.
+    """
+    # Preprocessing
+    df_proc = df.copy()
+
+    # Drop irrelevant columns if they exist
+    cols_to_drop = ["id_cliente", "mes"]  # identifiers
+    df_proc = df_proc.drop(columns=[c for c in cols_to_drop if c in df_proc.columns])
+
+    # Encode categorical columns
+    encoders = {}
+    for col in df_proc.columns:
+        if df_proc[col].dtype == "object":
+            le = LabelEncoder()
+            df_proc[col] = le.fit_transform(df_proc[col])
+            encoders[col] = le
+
+    # Split data
+    X = df_proc.drop("score_credito", axis=1)
+    y = df_proc["score_credito"]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    # Train model (Random Forest)
+    model = RandomForestClassifier(random_state=42)
+    model.fit(X_train, y_train)
+
+    # Evaluate
+    predictions = model.predict(X_test)
+    accuracy = accuracy_score(y_test, predictions)
+
+    # Feature Importance
+    feature_importance = pd.DataFrame(
+        {"feature": X.columns, "importance": model.feature_importances_}
+    ).sort_values("importance", ascending=False)
+
+    return {
+        "model": model,
+        "encoders": encoders,
+        "accuracy": accuracy,
+        "feature_importance": feature_importance,
+        "X_test": X_test,
+        "y_test": y_test,
+    }
+
+
+def predict_credit(model_data, input_data):
+    """
+    Predicts credit score for a given input.
+
+    Args:
+        model_data: Dictionary containing the trained model and encoders.
+        input_data: Dictionary or DataFrame with input features.
+
+    Returns:
+        str: Predicted credit score (decoded).
+    """
+    model = model_data["model"]
+    encoders = model_data["encoders"]
+
+    # Create DataFrame if input is dict -> ensures column order if dict keys match training cols
+    if isinstance(input_data, dict):
+        # We need to make sure we include all columns expected by the model
+        pass  # Handle in page logic to match columns, or here?
+        # Better to expect a proper dataframe or dict matching schema.
+        # Let's assume input_df will be constructed in the page.
+
+    input_df = (
+        pd.DataFrame([input_data])
+        if isinstance(input_data, dict)
+        else input_data.copy()
+    )
+
+    # Preprocess Input using saved encoders
+    for col, le in encoders.items():
+        if col in input_df.columns:
+            # Handle unseen labels carefully or just try transform
+            try:
+                input_df[col] = le.transform(input_df[col])
+            except ValueError:
+                # If unseen label, maybe assign a default or handled error?
+                # For now, let's assume valid inputs from UI
+                # Fallback: simple fit_transform on a single item won't work for inference
+                # We'll rely on UI restricting choices to known categories
+                pass
+
+    # Filter columns to align with model training features
+    if hasattr(model, "feature_names_in_"):
+        input_df = input_df[model.feature_names_in_]
+
+    prediction_encoded = model.predict(input_df)
+
+    # Decode prediction
+    if "score_credito" in encoders:
+        prediction = encoders["score_credito"].inverse_transform(prediction_encoded)
+        return prediction[0]
+
+    return prediction_encoded[0]

@@ -33,12 +33,26 @@ st.page_link(
     use_container_width=True,
 )
 
+st.page_link(
+    "pages/4-Score_de_Credito_dos_Clientes.py",
+    label="Score de Crédito dos Clientes",
+    icon="💳",
+    use_container_width=True,
+)
+
 st.markdown("---")
 
 st.subheader("Ferramentas Utilizadas")
-st.info("a adicionar")
+st.info("Python | Pandas | Plotly | Scikit-learn | Statsmodels")
 
 st.subheader("Competências Desenvolvidas")
-st.info("a adicionar")
+st.markdown(
+    """
+    - **Pré-processamento de Dados:** Limpeza, transformação e encoding de variáveis (LabelEncoder).
+    - **Machine Learning Supervisionado:** Regressão Linear, Random Forest Classification.
+    - **Séries Temporais:** Suavização Exponencial (Holt-Winters).
+    - **Avaliação de Modelos:** Métricas como R², RMSE, MAPE, Acurácia.
+    """
+)
 
 setup_sidebar()
