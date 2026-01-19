@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.express as px
 import seaborn as sns
 import joblib
 from pathlib import Path
@@ -12,34 +13,66 @@ setup_sidebar()
 add_back_to_top()
 
 st.title("👤 Previsor de Rotatividade de Funcionários")
-st.markdown(
-    """
-    Este aplicativo usa **Machine Learning (XGBoost)** para prever a probabilidade de um funcionário deixar a empresa.
-    """
-)
 
 MODEL_DIR = Path("./data/model")
 
-tabs = st.tabs(["Previsão", "Métricas do modelo", "Feature Importance"])
+tabs = st.tabs(["Visão Geral", "Previsão", "Métricas do modelo", "Feature Importance"])
+
 
 with tabs[0]:
+    st.markdown("### Enunciado do Projeto")
+    st.markdown(
+        """
+    No dinâmico ambiente empresarial atual, a retenção de talentos tornou-se um fator crítico para o sucesso sustentável das organizações.
+    Este projeto concentra-se na análise dos dados de recursos humanos de uma empresa com o objetivo de desenvolver um modelo de machine learning supervisionado
+    para prever com precisão se um funcionário está propenso a deixar a organização.
+
+    A aplicação de técnicas avançadas de machine learning na supervisão de recursos humanos representa uma oportunidade única para otimizar a tomada de decisões
+    baseada em dados e melhorar a eficiência operacional no âmbito da gestão de talentos.
+    """
+    )
+
+    st.markdown("### Objetivo")
+    st.markdown(
+        """
+    Desenvolver um modelo de machine learning supervisionado capaz de prever a probabilidade de um funcionário deixar a empresa, utilizando dados históricos do departamento de Recursos Humanos.
+    O modelo busca identificar padrões e fatores que influenciam a rotatividade para apoiar ações preventivas de retenção.
+    """
+    )
+
+    st.markdown("### Resultados e Conclusões")
+    st.markdown(
+        """
+    O projeto alcançou com sucesso o objetivo de desenvolver um modelo preditivo.
+    - **Análise Exploratória**: Verificou-se que a rotatividade está associada a fatores como idade (mais jovens saem mais), menor tempo de casa, menor salário e menor experiência total.
+    - **Modelagem**: O algoritmo **XGBoost** foi o destaque, alcançando **99.6% de acurácia** nos dados de teste, superando Random Forest e Regressão Logística.
+    - **Fatores Críticos**: As variáveis mais influentes detectadas pelo modelo foram:
+        - `MaritalStatus`: Solteiros tendem a ter maior rotatividade.
+        - `TotalWorkingYears` e `YearsAtCompany`: Menor tempo de casa/experiência aumenta o risco.
+        - `Age`: Jovens são mais propensos a sair.
+
+    O modelo fornece insights estratégicos para o RH antecipar desligamentos e planejar ações de retenção focadas.
+    """
+    )
+
+
+with tabs[1]:
     main_column1, spacer, main_column2 = st.columns([3, 0.2, 1])
 
     with main_column1:
-        st.subheader("⚙️ Parâmetros de Entrada")
-        st.info("Altere os dados abaixo para obter a previsão.")
+        st.subheader("Parâmetros de Entrada")
 
         col1, spacer_inner, col2, spacer_inner2, col3 = st.columns([1, 0.1, 1, 0.1, 1])
 
         with col1:
-            st.markdown("##### 📅 Dados Temporais")
+            st.markdown("##### Dados Temporais")
             age = st.slider("Idade", 18, 60, 30)
             total_years = st.slider("Anos totais de experiência", 0, 30, 10)
             years_at_company = st.slider("Anos na empresa atual", 0, 20, 5)
             years_with_manager = st.slider("Anos com o mesmo gerente", 0, 10, 3)
 
         with col2:
-            st.markdown("##### 👤 Dados Pessoais")
+            st.markdown("##### Dados Pessoais")
             marital = st.pills(
                 "Estado civil", ["Single", "Married", "Divorced"], default="Single"
             )
@@ -52,7 +85,7 @@ with tabs[0]:
             distance = st.slider("Distância da casa (km)", 0, 50, 10)
 
         with col3:
-            st.markdown("##### 💼 Dados Profissionais")
+            st.markdown("##### Dados Profissionais")
             department = st.selectbox(
                 "Departamento",
                 ["Sales", "Research & Development", "Human Resources"],
@@ -86,9 +119,7 @@ with tabs[0]:
                 "Gender": [gender],
                 "JobRole": [job_role],
                 "DistanceFromHome": [distance],
-                "Attrition": [
-                    "No"
-                ],  # Placeholder column required for pipeline consistency
+                "Attrition": ["No"],
             }
         )
 
@@ -150,51 +181,52 @@ with tabs[0]:
             st.stop()
 
     with main_column2:
-        st.subheader("🔮 Previsão")
-        try:
-            # Garantir colunas na ordem correta do modelo
-            if hasattr(xgb_model, "feature_names_in_"):
-                for col in xgb_model.feature_names_in_:
-                    if col not in input_data_model.columns:
-                        input_data_model[col] = 0
-                input_data_model = input_data_model[xgb_model.feature_names_in_]
+        with st.container(border=True):
+            st.subheader("Previsão")
+            try:
+                # Garantir colunas na ordem correta do modelo
+                if hasattr(xgb_model, "feature_names_in_"):
+                    for col in xgb_model.feature_names_in_:
+                        if col not in input_data_model.columns:
+                            input_data_model[col] = 0
+                    input_data_model = input_data_model[xgb_model.feature_names_in_]
 
-            # Predição
-            prob = xgb_model.predict_proba(input_data_model)[0][1]
+                # Predição
+                prob = xgb_model.predict_proba(input_data_model)[0][1]
 
-            if prob > 0.7:
-                delta_color = "inverse"
-                delta_text = "Alto Risco"
-                st.error(
-                    "⚠️ **Atenção:** Alta probabilidade de rotatividade! Ações preventivas são fortemente recomendadas."
+                if prob > 0.7:
+                    delta_color = "inverse"
+                    delta_text = "Alto Risco"
+                    st.error(
+                        "⚠️ **Atenção:** Alta probabilidade de rotatividade! Ações preventivas são fortemente recomendadas."
+                    )
+                elif prob > 0.4:
+                    delta_color = "off"
+                    delta_text = "Risco Moderado"
+                    st.warning(
+                        "⚠️ **Alerta:** Risco moderado de rotatividade. Vale a pena revisar os planos de desenvolvimento e engajamento."
+                    )
+                else:
+                    delta_color = "normal"
+                    delta_text = "Baixo Risco"
+                    st.success(
+                        "✅ **Estável:** Baixo risco de saída. O funcionário demonstra boa estabilidade."
+                    )
+
+                st.metric(
+                    label="Probabilidade de Saída",
+                    value=f"{prob*100:.1f}%",
+                    delta=delta_text,
+                    delta_color=delta_color,
                 )
-            elif prob > 0.4:
-                delta_color = "off"
-                delta_text = "Risco Moderado"
-                st.warning(
-                    "⚠️ **Alerta:** Risco moderado de rotatividade. Vale a pena revisar os planos de desenvolvimento e engajamento."
-                )
-            else:
-                delta_color = "normal"
-                delta_text = "Baixo Risco"
-                st.success(
-                    "✅ **Estável:** Baixo risco de saída. O funcionário demonstra boa estabilidade."
-                )
 
-            st.metric(
-                label="Probabilidade de Saída",
-                value=f"{prob*100:.1f}%",
-                delta=delta_text,
-                delta_color=delta_color,
-            )
-
-        except Exception as e:
-            st.error(f"❌ Erro ao fazer previsão: {e}")
-            st.exception(e)
+            except Exception as e:
+                st.error(f"❌ Erro ao fazer previsão: {e}")
+                st.exception(e)
 
 
-with tabs[1]:
-    st.subheader("ℹ️ Métricas do modelo (Dados de Teste)")
+with tabs[2]:
+    st.subheader("Métricas do modelo")
     try:
         metrics = joblib.load(MODEL_DIR / "model_metrics.pkl")
         conf_matrix = joblib.load(MODEL_DIR / "confusion_matrix.pkl")
@@ -223,13 +255,12 @@ with tabs[1]:
         auc_val = metrics.get("AUC-ROC")
         col_m5.metric("📈 AUC-ROC", f"{auc_val:.2%}" if auc_val else "N/A")
 
-        st.divider()
-        st.subheader("🎲 Matriz de Confusão")
+        st.subheader("Matriz de Confusão")
 
         col_conf1, col_conf2 = st.columns([1.5, 1])
 
         with col_conf1:
-            fig, ax = plt.subplots(figsize=(6, 4))
+            fig, ax = plt.subplots(figsize=(3, 2))
             sns.heatmap(
                 conf_matrix,
                 annot=True,
@@ -239,12 +270,16 @@ with tabs[1]:
                 linecolor="white",
                 square=True,
                 ax=ax,
-                annot_kws={"size": 14, "weight": "bold"},
+                annot_kws={"size": 8, "weight": "bold"},
+                cbar_kws={"shrink": 0.4},
             )
-            ax.set_xlabel("Predição", fontsize=10, fontweight="bold")
-            ax.set_ylabel("Real", fontsize=10, fontweight="bold")
-            ax.set_xticklabels(["Não Sai", "Sai"], fontsize=10)
-            ax.set_yticklabels(["Não Sai", "Sai"], fontsize=10, rotation=0)
+            if ax.collections:
+                cbar = ax.collections[0].colorbar
+                cbar.ax.tick_params(labelsize=6)
+            ax.set_xlabel("Predição", fontsize=6, fontweight="bold")
+            ax.set_ylabel("Real", fontsize=6, fontweight="bold")
+            ax.set_xticklabels(["Não Sai", "Sai"], fontsize=6)
+            ax.set_yticklabels(["Não Sai", "Sai"], fontsize=6, rotation=0)
             st.pyplot(fig, use_container_width=False)
 
         with col_conf2:
@@ -267,12 +302,10 @@ with tabs[1]:
         st.error(f"Erro ao carregar métricas: {e}")
 
 
-with tabs[2]:
-    st.subheader("🔬 Importância das Variáveis (Feature Importance)")
-    st.markdown("Fatores que mais influenciam a decisão do modelo.")
+with tabs[3]:
+    st.subheader("Importância das Variáveis")
 
     try:
-        # Extrair importâncias
         feature_importance = (
             pd.DataFrame(
                 {
@@ -292,49 +325,36 @@ with tabs[2]:
 
         col_fi1, col_fi2 = st.columns([2, 1])
 
-        with col_fi1:
-            # Gráfico de Barras com Rótulos de Dados (Feedback request)
-            fig, ax = plt.subplots(figsize=(10, 6))
-            bars = ax.barh(
-                feature_importance["Feature"],
-                feature_importance["Importância (%)"],
-                color="#1f77b4",
-                edgecolor="#0d47a1",
-                alpha=0.8,
-            )
+        fig = px.bar(
+            feature_importance.sort_values("Importância (%)", ascending=True),
+            x="Importância (%)",
+            y="Feature",
+            orientation="h",
+            text="Importância (%)",
+            title="<b>Top 15 Variáveis Mais Importantes</b>",
+            labels={
+                "Importância (%)": "Importância Relativa (%)",
+                "Feature": "Variável",
+            },
+            color_discrete_sequence=["#1f77b4"],
+            template="plotly_white",
+        )
 
-            # Adicionando Rótulos de Dados (Data Labels)
-            for bar in bars:
-                width = bar.get_width()
-                label_y_pos = bar.get_y() + bar.get_height() / 2
-                ax.text(
-                    width + 0.5,
-                    label_y_pos,
-                    f"{width:.1f}%",
-                    va="center",
-                    fontsize=9,
-                    color="black",
-                )
+        fig.update_traces(
+            texttemplate="%{text:.1f}%",
+            textposition="outside",
+            hovertemplate="<b>%{y}</b><br>Importância: %{x:.2f}%<extra></extra>",
+        )
 
-            ax.set_xlabel("Importância (%)")
-            ax.set_title("Top 15 Variáveis Mais Importantes")
-            ax.invert_yaxis()  # Maior importância no topo
-            ax.grid(axis="x", linestyle="--", alpha=0.5)
+        fig.update_layout(
+            yaxis={"categoryorder": "total ascending"},
+            xaxis=dict(showgrid=True, gridcolor="lightgray"),
+            showlegend=False,
+            margin=dict(l=0, r=0, t=40, b=0),
+            height=500,
+        )
 
-            # Remover bordas desnecessárias
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-
-            st.pyplot(fig, use_container_width=True)
-
-        with col_fi2:
-            st.dataframe(
-                feature_importance[["Feature", "Importância (%)"]].reset_index(
-                    drop=True
-                ),
-                use_container_width=True,
-                height=400,
-            )
+        st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
         st.error(f"Erro ao gerar gráfico de importância: {e}")
