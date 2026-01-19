@@ -54,6 +54,13 @@ st.page_link(
     use_container_width=True,
 )
 
+st.page_link(
+    "pages/7-Avaliacao_de_Risco_de_Credito.py",
+    label="Avaliação de Risco de Crédito",
+    icon="🏦",
+    use_container_width=True,
+)
+
 st.markdown("---")
 
 st.subheader("Ferramentas Utilizadas")
