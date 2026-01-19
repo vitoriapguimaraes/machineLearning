@@ -26,6 +26,13 @@ st.page_link(
     use_container_width=True,
 )
 
+st.page_link(
+    "pages/3-Previsao_de_Vendas.py",
+    label="Previsão de Vendas",
+    icon="📈",
+    use_container_width=True,
+)
+
 st.markdown("---")
 
 st.subheader("Ferramentas Utilizadas")

@@ -1,5 +1,7 @@
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
+from statsmodels.tsa.holtwinters import SimpleExpSmoothing
+import pandas as pd
 import numpy as np
 
 
@@ -109,3 +111,70 @@ def predict_rent(model, area):
     input_data = np.array([[area]])
     prediction = model.predict(input_data)
     return prediction[0]
+
+
+def train_sales_model(df):
+    """
+    Trains a Simple Exponential Smoothing model for sales prediction.
+
+    Args:
+        df: DataFrame containing 'Data' and 'Total_Vendas' columns.
+
+    Returns:
+        dict: A dictionary containing the trained model and the original series.
+    """
+    # Preprocessing
+    df_proc = df.copy()
+    if not pd.api.types.is_datetime64_any_dtype(df_proc["Data"]):
+        df_proc["Data"] = pd.to_datetime(df_proc["Data"])
+
+    series = df_proc.set_index("Data")["Total_Vendas"]
+    series = series.asfreq("D")  # Ensure daily frequency
+
+    # Model Training (Simple Exponential Smoothing)
+    # Using smoothing_level=0.2 as per original notebook
+    model = SimpleExpSmoothing(series)
+    fitted_model = model.fit(smoothing_level=0.2, optimized=False)
+
+    return {"model": fitted_model, "series": series}
+
+
+def evaluate_sales_model(model_data):
+    """
+    Calculates evaluation metrics (RMSE, MAPE) for the sales model.
+
+    Args:
+        model_data: Dictionary containing the trained model and series.
+
+    Returns:
+        dict: Dictionary with RMSE and MAPE.
+    """
+    model = model_data["model"]
+    series = model_data["series"]
+
+    # In-sample predictions (fitted values)
+    predictions = model.fittedvalues
+    actuals = series
+
+    # Calculate metrics
+    mse = np.mean((predictions - actuals) ** 2)
+    rmse = np.sqrt(mse)
+    mape = np.mean(np.abs((actuals - predictions) / actuals)) * 100
+
+    return {"rmse": rmse, "mape": mape}
+
+
+def predict_sales(model_data, days=31):
+    """
+    Forecasts sales for a specified number of days.
+
+    Args:
+        model_data: The dictionary returned by train_sales_model.
+        days: Number of days to forecast.
+
+    Returns:
+        pandas.Series: Forecasted values.
+    """
+    model = model_data["model"]
+    forecast = model.forecast(days)
+    return forecast
