@@ -210,7 +210,7 @@ with tabs[1]:
 # --- Aba: Modelagem & Previsão ---
 with tabs[2]:
     if model is not None:
-        st.subheader("⚙️ Métricas do Modelo (Regressão Logística)")
+        st.subheader("Métricas do Modelo (Regressão Logística)")
 
         y_pred = model.predict(X_test)
         y_proba = model.predict_proba(X_test)[:, 1]
@@ -232,7 +232,6 @@ with tabs[2]:
             st.dataframe(report_df.style.format("{:.2f}"), use_container_width=True)
 
         with col_res2:
-            st.markdown("##### Matriz de Confusão")
             cm = confusion_matrix(y_test, y_pred)
 
             plot_confusion_matrix(
@@ -243,10 +242,13 @@ with tabs[2]:
 
 # --- Aba: Simulador ---
 with tabs[3]:
-    st.subheader("🧮 Simulador de Score de Crédito")
+    st.subheader("Simulador de Score de Crédito")
 
     if model is not None:
-        with st.form("simulacao_form"):
+
+        col_form, c_score = st.columns([3, 1])
+
+        with col_form.form("simulacao_form"):
             st.markdown(
                 "Insira os dados do cliente para calcular a probabilidade de default."
             )
@@ -273,46 +275,44 @@ with tabs[3]:
 
             submit_btn = st.form_submit_button("Calcular Risco")
 
-            if submit_btn:
-                # Preparar input
-                input_data = {
-                    "age": age_input,
-                    "sex_num": 0,  # Valor padrão genérico
-                    "last_month_salary": salary_input,
-                    "number_dependents": dependents_input,
-                    "total_emprestimos": loans_input,
-                    "qtd_real_estate": real_estate_input,
-                    "qtd_others": max(0, loans_input - real_estate_input),
-                    "perc_real_estate": (
-                        real_estate_input / loans_input if loans_input > 0 else 0
-                    ),
-                    "perc_others": (
-                        (loans_input - real_estate_input) / loans_input
-                        if loans_input > 0
-                        else 0
-                    ),
-                    "more_90_days_overdue": late_90,
-                    "using_lines_not_secured_personal_assets": 0,
-                    "number_times_delayed_payment_loan_30_59_days": late_30_59,
-                    "debt_ratio": debt_ratio_input,
-                    "number_times_delayed_payment_loan_60_89_days": late_60_89,
-                }
+        with c_score:
+            with st.container(border=True):
 
-                input_df = pd.DataFrame([input_data])
-                # Garantir mesmas colunas usadas no treino
-                input_df = input_df[feature_cols]
+                if submit_btn:
+                    # Preparar input
+                    input_data = {
+                        "age": age_input,
+                        "sex_num": 0,  # Valor padrão genérico
+                        "last_month_salary": salary_input,
+                        "number_dependents": dependents_input,
+                        "total_emprestimos": loans_input,
+                        "qtd_real_estate": real_estate_input,
+                        "qtd_others": max(0, loans_input - real_estate_input),
+                        "perc_real_estate": (
+                            real_estate_input / loans_input if loans_input > 0 else 0
+                        ),
+                        "perc_others": (
+                            (loans_input - real_estate_input) / loans_input
+                            if loans_input > 0
+                            else 0
+                        ),
+                        "more_90_days_overdue": late_90,
+                        "using_lines_not_secured_personal_assets": 0,
+                        "number_times_delayed_payment_loan_30_59_days": late_30_59,
+                        "debt_ratio": debt_ratio_input,
+                        "number_times_delayed_payment_loan_60_89_days": late_60_89,
+                    }
 
-                prob_default = model.predict_proba(input_df)[0][1]
-                score = int((1 - prob_default) * 1000)  # Score tipo Serasa 0-1000
+                    input_df = pd.DataFrame([input_data])
+                    # Garantir mesmas colunas usadas no treino
+                    input_df = input_df[feature_cols]
 
-                st.divider()
-                c_score1, c_score2 = st.columns([1, 2])
+                    prob_default = model.predict_proba(input_df)[0][1]
+                    score = int((1 - prob_default) * 1000)  # Score tipo Serasa 0-1000
 
-                with c_score1:
                     st.metric("Probabilidade de Default", f"{prob_default:.1%}")
                     st.metric("Score Calculado", f"{score}/1000")
 
-                with c_score2:
                     if prob_default > 0.5:
                         st.error("🚨 **Alto Risco detectado**")
                         st.markdown(
@@ -326,3 +326,9 @@ with tabs[3]:
                     else:
                         st.success("✅ **Baixo Risco**")
                         st.markdown("Recomendação: **Aprovar Crédito**.")
+
+                else:
+                    st.markdown("### Resultado indisponível")
+                    st.markdown(
+                        "Preencha os dados do cliente e clique em 'Calcular Risco' para obter o resultado."
+                    )
