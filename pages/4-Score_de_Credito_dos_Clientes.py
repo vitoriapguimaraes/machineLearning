@@ -33,9 +33,11 @@ tab_overview, tab_analysis, tab_prediction = st.tabs(
 )
 
 with tab_overview:
+    st.subheader(
+        "Entendendo o Problema"
+    )
     st.markdown(
         """
-        ### Entendendo o Problema
         Este projeto visa prever o **Score de Crédito** de clientes bancários, classificando-os em categorias (Ruim, Padrão, Bom) com base em seu histórico financeiro.
         O modelo de Inteligência Artificial analisa diversos fatores para auxiliar na tomada de decisão de concessão de crédito.
         - **Dados:** Histórico financeiro de clientes.
@@ -73,7 +75,7 @@ with tab_prediction:
 
     st.metric("Acurácia do Modelo", f"{model_data['accuracy']:.2%}")
 
-    st.markdown("### Simulação de Score")
+    st.subheader("Simulação de Score")
     st.markdown("Complete com informações do cliente para prever o Score.")
     st.caption(
         "A simulação tem como prioridade as características mais relevantes (como Dívida, Mix de Crédito e Juros) para estimar o Score."

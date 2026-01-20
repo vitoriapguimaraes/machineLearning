@@ -54,7 +54,7 @@ with tab_overview:
         st.dataframe(df.describe(), use_container_width=True)
 
 with tab_analysis:
-    st.markdown("### Análise da Série Temporal")
+    st.subheader("Análise da Série Temporal")
 
     # Plot Model Fit using Plotly
     model = model_data["model"]
@@ -69,7 +69,7 @@ with tab_analysis:
     )
 
 with tab_prediction:
-    st.markdown("### Previsão para Futuro")
+    st.subheader("Previsão para Futuro")
 
     periods = {"1 Mês": 30, "1 Semestre": 180, "1 Ano": 365}
 

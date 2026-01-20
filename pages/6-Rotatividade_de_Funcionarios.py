@@ -20,7 +20,7 @@ tabs = st.tabs(["Visão Geral", "Previsão", "Métricas do modelo", "Feature Imp
 
 
 with tabs[0]:
-    st.markdown("### Enunciado do Projeto")
+    st.subheader("Enunciado do Projeto")
     st.markdown(
         """
     No dinâmico ambiente empresarial atual, a retenção de talentos tornou-se um fator crítico para o sucesso sustentável das organizações.
@@ -32,7 +32,7 @@ with tabs[0]:
     """
     )
 
-    st.markdown("### Objetivo")
+    st.subheader("Objetivo")
     st.markdown(
         """
     Desenvolver um modelo de machine learning supervisionado capaz de prever a probabilidade de um funcionário deixar a empresa, utilizando dados históricos do departamento de Recursos Humanos.
@@ -40,7 +40,7 @@ with tabs[0]:
     """
     )
 
-    st.markdown("### Resultados e Conclusões")
+    st.subheader("Resultados e Conclusões")
     st.markdown(
         """
     O projeto alcançou com sucesso o objetivo de desenvolver um modelo preditivo.

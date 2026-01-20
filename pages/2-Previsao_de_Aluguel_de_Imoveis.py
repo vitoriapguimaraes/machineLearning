@@ -56,7 +56,7 @@ with tab_overview:
     st.dataframe(df.describe(), use_container_width=True)
 
 with tab_analysis:
-    st.markdown("### Análise Exploratória")
+    st.subheader("Análise Exploratória")
 
     show_univariate_grid(
         df,
@@ -66,7 +66,7 @@ with tab_analysis:
         num_cols=2,
     )
 
-    st.markdown("### Correlação e Regressão")
+    st.subheader("Correlação e Regressão")
     plot_regression(
         df,
         x_col="area_m2",
@@ -77,7 +77,7 @@ with tab_analysis:
     )
 
 with tab_prediction:
-    st.markdown("### Simulações")
+    st.subheader("Simulações")
 
     col_input, col_result = st.columns([1, 2])
 
