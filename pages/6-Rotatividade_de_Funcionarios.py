@@ -1,11 +1,10 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import plotly.express as px
-import seaborn as sns
 import joblib
 from pathlib import Path
 from utils.ui import setup_sidebar, add_back_to_top
+from utils.visualizations import plot_confusion_matrix
 
 st.set_page_config(page_title="Previsor de Rotatividade", page_icon="👤", layout="wide")
 
@@ -255,35 +254,18 @@ with tabs[2]:
         auc_val = metrics.get("AUC-ROC")
         col_m5.metric("📈 AUC-ROC", f"{auc_val:.2%}" if auc_val else "N/A")
 
-        st.subheader("Matriz de Confusão")
-
         col_conf1, col_conf2 = st.columns([1.5, 1])
 
         with col_conf1:
-            fig, ax = plt.subplots(figsize=(3, 2))
-            sns.heatmap(
+            plot_confusion_matrix(
                 conf_matrix,
-                annot=True,
-                fmt="d",
-                cmap="Blues",
-                linewidths=2,
-                linecolor="white",
-                square=True,
-                ax=ax,
-                annot_kws={"size": 8, "weight": "bold"},
-                cbar_kws={"shrink": 0.4},
+                x_labels=["Não Sai (0)", "Sai (1)"],
+                y_labels=["Não Sai (0)", "Sai (1)"],
             )
-            if ax.collections:
-                cbar = ax.collections[0].colorbar
-                cbar.ax.tick_params(labelsize=6)
-            ax.set_xlabel("Predição", fontsize=6, fontweight="bold")
-            ax.set_ylabel("Real", fontsize=6, fontweight="bold")
-            ax.set_xticklabels(["Não Sai", "Sai"], fontsize=6)
-            ax.set_yticklabels(["Não Sai", "Sai"], fontsize=6, rotation=0)
-            st.pyplot(fig, use_container_width=False)
 
         with col_conf2:
             tn, fp, fn, tp = conf_matrix.ravel()
+            st.markdown("##### Matriz de Confusão")
             st.markdown(
                 f"""
             **Legenda:**
