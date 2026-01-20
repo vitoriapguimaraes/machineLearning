@@ -6,6 +6,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, confusion_matrix, roc_auc_score
 from utils.ui import setup_sidebar, add_back_to_top
+from utils.visualizations import plot_heatmap, plot_confusion_matrix
 
 # Configuração da Página
 st.set_page_config(page_title="Risco de Crédito", page_icon="🏦", layout="wide")
@@ -86,15 +87,37 @@ tabs = st.tabs(
 
 # --- Aba: Visão Geral ---
 with tabs[0]:
-    st.markdown("### 📋 Sobre o Projeto")
+    st.subheader("Enunciado do Projeto")
     st.markdown(
         """
-    **Objetivo:** Automatizar a análise de risco de crédito utilizando Machine Learning para classificar clientes com base na probabilidade de inadimplência.
-    **Contexto:** O banco busca maior eficiência na concessão de crédito. O modelo utiliza **Regressão Logística** com pesos balanceados para mitigar o risco de aprovar maus pagadores.
+        No atual cenário financeiro, a diminuição das taxas de juros tem gerado um notável aumento na demanda por crédito no banco "Super Caja". No entanto, essa crescente demanda tem sobrecarregado a equipe de análise de crédito, que atualmente está imersa em um processo manual ineficiente e demorado para avaliar as inúmeras solicitações de empréstimo. Diante desse desafio, propõe-se uma solução inovadora: a automatização do processo de análise por meio de técnicas avançadas de análise de dados. O objetivo principal é melhorar a eficiência e a precisão na avaliação do risco de crédito, permitindo ao banco tomar decisões informadas sobre a concessão de crédito e reduzir o risco de empréstimos não reembolsáveis. Esta proposta também destaca a integração de uma métrica existente de pagamentos em atraso, fortalecendo assim a capacidade do modelo. Este projeto não apenas oferece a oportunidade de se aprofundar na análise de dados, mas também proporciona a aquisição de habilidades-chave na classificação de clientes, no uso da matriz de confusão e na realização de consultas complexas no BigQuery, preparando-o para enfrentar desafios analíticos em diversos campos.
+        """
+    )
+    st.subheader("Objetivo do Projeto")
+    st.markdown(
+        """
+        Automatizar a análise de risco de crédito utilizando Machine Learning para classificar clientes com base na probabilidade de inadimplência. O banco busca maior eficiência na concessão de crédito.
     """
     )
+    st.subheader("Resultados e Conclusões")
+    st.markdown(
+        """
+        No desenvolvimento deste modelo de **Risk Scoring** com Regressão Logística, processamos dados de ~36 mil clientes (2% inadimplentes).
+        """
+    )
+    st.markdown(
+        """
+        **Principais Descobertas:**
+        *   **Perfil de Risco:** Clientes inadimplentes mostram forte correlação com **menor renda** e **histórico de atrasos** (>90 dias e 30-59 dias).
+        *   **Performance:** Acurácia global de **79%**. O modelo é conservador (alta especificidade), minimizando a concessão de crédito a maus pagadores, mas pode ser cauteloso com alguns bons.
+        *   **Impacto:** Permite triagem automatizada eficiente, focando a análise humana nos casos limítrofes.
+        """
+    )
 
+# --- Aba: Análise Exploratória ---
+with tabs[1]:
     if df is not None:
+
         col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
         col_kpi1.metric("Total de Clientes", f"{len(df):,}")
         col_kpi2.metric(
@@ -102,23 +125,7 @@ with tabs[0]:
         )
         col_kpi3.metric("Salário Médio", f"R$ {df['last_month_salary'].mean():.2f}")
 
-        st.markdown("### 📚 Dicionário de Dados (Principais)")
-        st.markdown(
-            """
-        | Variável | Descrição |
-        |---|---|
-        | `default_flag` | **Target:** 1 = Inadimplente, 0 = Bom Pagador |
-        | `age` | Idade do cliente |
-        | `last_month_salary` | Renda mensal declarada |
-        | `more_90_days_overdue` | Número de vezes que atrasou pagamentos > 90 dias |
-        | `debt_ratio` | Razão Dívida / Renda |
-        """
-        )
-
-# --- Aba: Análise Exploratória ---
-with tabs[1]:
-    if df is not None:
-        st.subheader("🔍 Análise de Risco Relativo (RR)")
+        st.subheader("Análise de Risco Relativo (RR)")
         st.info(
             """
         **Risco Relativo (RR):** Compara a taxa de inadimplência de um grupo específico com a taxa média global.
@@ -187,7 +194,7 @@ with tabs[1]:
             fig_rr_d.update_layout(yaxis_title="Risco Relativo (RR)")
             st.plotly_chart(fig_rr_d, use_container_width=True)
 
-        st.subheader("🔥 Outras Correlações")
+        st.subheader("Outras Correlações")
         corr_cols = [
             "default_flag",
             "age",
@@ -198,13 +205,7 @@ with tabs[1]:
         ]
         corr_matrix = df[corr_cols].corr()
 
-        fig_corr = px.imshow(
-            corr_matrix,
-            text_auto=".2f",
-            color_continuous_scale="RdBu_r",
-            title="Matriz de Correlação",
-        )
-        st.plotly_chart(fig_corr, use_container_width=True)
+        plot_heatmap(df, corr_cols, height=400)
 
 # --- Aba: Modelagem & Previsão ---
 with tabs[2]:
@@ -233,15 +234,12 @@ with tabs[2]:
         with col_res2:
             st.markdown("##### Matriz de Confusão")
             cm = confusion_matrix(y_test, y_pred)
-            fig_cm = px.imshow(
+
+            plot_confusion_matrix(
                 cm,
-                text_auto=True,
-                color_continuous_scale="Blues",
-                labels=dict(x="Predito", y="Real", color="Qtd"),
-                x=["Bom Pagador (0)", "Inadimplente (1)"],
-                y=["Bom Pagador (0)", "Inadimplente (1)"],
+                x_labels=["Bom Pagador (0)", "Inadimplente (1)"],
+                y_labels=["Bom Pagador (0)", "Inadimplente (1)"],
             )
-            st.plotly_chart(fig_cm, use_container_width=True)
 
 # --- Aba: Simulador ---
 with tabs[3]:

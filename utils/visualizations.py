@@ -300,3 +300,23 @@ def plot_forecast(
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
     )
     st.plotly_chart(fig, use_container_width=True)
+
+
+def plot_confusion_matrix(
+    cm, x_labels, y_labels, title="Matriz de Confusão", height=400, color_scale="Blues"
+):
+    """
+    Renderiza uma matriz de confusão.
+    """
+    fig = px.imshow(
+        cm,
+        text_auto=True,
+        aspect="equal",
+        color_continuous_scale=color_scale,
+        x=x_labels,
+        y=y_labels,
+        title=title,
+        labels=dict(x="Predito", y="Real", color="Qtd"),
+    )
+    fig.update_layout(height=height)
+    st.plotly_chart(fig, use_container_width=True)
