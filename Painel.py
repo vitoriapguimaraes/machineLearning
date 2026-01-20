@@ -64,15 +64,17 @@ st.page_link(
 st.markdown("---")
 
 st.subheader("Ferramentas Utilizadas")
-st.info("Python | Pandas | Plotly | Scikit-learn | Statsmodels")
+st.info("Python | Pandas | Plotly | Scikit-learn | XGBoost | Statsmodels | Streamlit")
 
 st.subheader("Competências Desenvolvidas")
 st.markdown(
     """
-    - **Pré-processamento de Dados:** Limpeza, transformação e encoding de variáveis (LabelEncoder).
-    - **Machine Learning Supervisionado:** Regressão Linear, Random Forest Classification.
+    - **Pré-processamento:** Limpeza, imputação, encoding e balanceamento de classes.
+    - **Modelagem Supervisionada:** Regressão (Linear/Logística), Random Forest, XGBoost.
+    - **Aprendizado por Reforço:** Q-Learning (Agentes Autônomos).
     - **Séries Temporais:** Suavização Exponencial (Holt-Winters).
-    - **Avaliação de Modelos:** Métricas como R², RMSE, MAPE, Acurácia.
+    - **Avaliação de Modelos:** R², RMSE, Curva ROC/AUC, Matriz de Confusão, Precision-Recall.
+    - **Análise de Negócio:** Risk Scoring e Cálculo de Risco Relativo (RR).
     """
 )
 

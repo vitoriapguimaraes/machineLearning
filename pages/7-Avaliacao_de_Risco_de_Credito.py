@@ -90,7 +90,6 @@ with tabs[0]:
     st.markdown(
         """
     **Objetivo:** Automatizar a análise de risco de crédito utilizando Machine Learning para classificar clientes com base na probabilidade de inadimplência.
-    
     **Contexto:** O banco busca maior eficiência na concessão de crédito. O modelo utiliza **Regressão Logística** com pesos balanceados para mitigar o risco de aprovar maus pagadores.
     """
     )
