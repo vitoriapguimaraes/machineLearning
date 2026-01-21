@@ -28,14 +28,10 @@ def get_trained_model(data):
 model_data = get_trained_model(df)
 
 # Tabs
-tab_overview, tab_analysis, tab_prediction = st.tabs(
-    ["Visão Geral", "Análise", "Previsão"]
-)
+tab1, tab2, tab3 = st.tabs(["Visão Geral", "Análise", "Previsão"])
 
-with tab_overview:
-    st.subheader(
-        "Entendendo o Problema"
-    )
+with tab1:
+    st.subheader("Entendendo o Problema")
     st.markdown(
         """
         Este projeto visa prever o **Score de Crédito** de clientes bancários, classificando-os em categorias (Ruim, Padrão, Bom) com base em seu histórico financeiro.
@@ -48,7 +44,7 @@ with tab_overview:
     st.subheader("Amostra dos Dados")
     st.dataframe(df.head(), use_container_width=True)
 
-with tab_analysis:
+with tab2:
 
     col_score, col_feature = st.columns(2)
 
@@ -71,7 +67,7 @@ with tab_analysis:
         fig.update_layout(yaxis=dict(autorange="reversed"))
         st.plotly_chart(fig, use_container_width=True)
 
-with tab_prediction:
+with tab3:
 
     st.metric("Acurácia do Modelo", f"{model_data['accuracy']:.2%}")
 

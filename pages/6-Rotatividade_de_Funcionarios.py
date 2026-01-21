@@ -15,10 +15,12 @@ st.title("👤 Previsor de Rotatividade de Funcionários")
 
 MODEL_DIR = Path("./data/model")
 
-tabs = st.tabs(["Visão Geral", "Previsão", "Métricas do modelo", "Feature Importance"])
+tab1, tab2, tab3, tab4 = st.tabs(
+    ["Visão Geral", "Previsão", "Métricas do modelo", "Feature Importance"]
+)
 
 
-with tabs[0]:
+with tab1:
     st.subheader("Enunciado do Projeto")
     st.markdown(
         """
@@ -55,7 +57,7 @@ with tabs[0]:
     )
 
 
-with tabs[1]:
+with tab2:
     main_column1, spacer, main_column2 = st.columns([3, 0.2, 1])
 
     with main_column1:
@@ -224,7 +226,7 @@ with tabs[1]:
                 st.exception(e)
 
 
-with tabs[2]:
+with tab3:
     st.subheader("Métricas do modelo")
     try:
         metrics = joblib.load(MODEL_DIR / "model_metrics.pkl")
@@ -284,7 +286,7 @@ with tabs[2]:
         st.error(f"Erro ao carregar métricas: {e}")
 
 
-with tabs[3]:
+with tab4:
     st.subheader("Importância das Variáveis")
 
     try:

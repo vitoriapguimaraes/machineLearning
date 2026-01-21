@@ -81,12 +81,12 @@ def train_model(data):
 model, X_test, y_test, feature_cols = train_model(df)
 
 # --- Interface ---
-tabs = st.tabs(
+tab1, tab2, tab3, tab4 = st.tabs(
     ["Visão Geral", "Análise Exploratória", "Modelagem & Previsão", "Simulador"]
 )
 
 # --- Aba: Visão Geral ---
-with tabs[0]:
+with tab1:
     st.subheader("Enunciado do Projeto")
     st.markdown(
         """
@@ -115,7 +115,7 @@ with tabs[0]:
     )
 
 # --- Aba: Análise Exploratória ---
-with tabs[1]:
+with tab2:
     if df is not None:
 
         col_kpi1, col_kpi2, col_kpi3 = st.columns(3)
@@ -208,7 +208,7 @@ with tabs[1]:
         plot_heatmap(df, corr_cols, height=400)
 
 # --- Aba: Modelagem & Previsão ---
-with tabs[2]:
+with tab3:
     if model is not None:
         st.subheader("Métricas do Modelo (Regressão Logística)")
 
@@ -241,7 +241,7 @@ with tabs[2]:
             )
 
 # --- Aba: Simulador ---
-with tabs[3]:
+with tab4:
     st.subheader("Simulador de Score de Crédito")
 
     if model is not None:
@@ -328,7 +328,7 @@ with tabs[3]:
                         st.markdown("Recomendação: **Aprovar Crédito**.")
 
                 else:
-                    st.markdown("### Resultado indisponível")
+                    st.subheader("Resultado indisponível")
                     st.markdown(
                         "Preencha os dados do cliente e clique em 'Calcular Risco' para obter o resultado."
                     )

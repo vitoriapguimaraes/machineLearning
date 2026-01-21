@@ -29,14 +29,12 @@ model_data = get_trained_model(df)
 series = model_data["series"]
 
 # Tabs
-tab_overview, tab_analysis, tab_prediction = st.tabs(
-    ["Visão Geral", "Análise", "Previsão"]
-)
+tab1, tab2, tab3 = st.tabs(["Visão Geral", "Análise", "Previsão"])
 
-with tab_overview:
+with tab1:
+    st.subheader("Entendendo o Problema")
     st.markdown(
         """
-        ### Entendendo o Problema
         Este projeto utiliza **Suavização Exponencial Simples** para prever o total de vendas futuras com base em dados históricos.
         O objetivo é projetar as vendas para o próximo mês (Janeiro/2024).
         - **Dados:** Série temporal de vendas diárias de 2023.
@@ -53,7 +51,7 @@ with tab_overview:
         st.subheader("Estatísticas Descritivas")
         st.dataframe(df.describe(), use_container_width=True)
 
-with tab_analysis:
+with tab2:
     st.subheader("Análise da Série Temporal")
 
     # Plot Model Fit using Plotly
@@ -68,7 +66,7 @@ with tab_analysis:
         forecast_label="Valores Ajustados (Modelo)",
     )
 
-with tab_prediction:
+with tab3:
     st.subheader("Previsão para Futuro")
 
     periods = {"1 Mês": 30, "1 Semestre": 180, "1 Ano": 365}
