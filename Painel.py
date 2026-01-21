@@ -61,6 +61,13 @@ st.page_link(
     use_container_width=True,
 )
 
+st.page_link(
+    "pages/8-Avaliacao_de_Padroes_de_Voos.py",
+    label="Avaliação de Padrões de Voos",
+    icon="✈️",
+    use_container_width=True,
+)
+
 st.markdown("---")
 
 st.subheader("Ferramentas Utilizadas")
