@@ -1,9 +1,9 @@
 from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 from statsmodels.tsa.holtwinters import SimpleExpSmoothing
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, mean_absolute_error
 import pandas as pd
 import numpy as np
 
@@ -291,3 +291,104 @@ def predict_credit(model_data, input_data):
         return prediction[0]
 
     return prediction_encoded[0]
+
+
+def train_flight_model(df):
+    """
+    Trains a Random Forest Regressor to predict flight delays.
+
+    Args:
+        df: DataFrame containing flight data.
+
+    Returns:
+        dict: Trained model, encoders, and metrics.
+    """
+    # Preprocessing
+    df_proc = df.copy()
+
+    # Select features
+    features = [
+        "AIRLINE_Description",
+        "ORIGIN_CITY",
+        "DEST_CITY",
+        "DISTANCE",
+        "DAY_OF_WEEK",
+        "TIME_HOUR",
+    ]
+    target = "DELAY_OVERALL"
+
+    # Drop rows with missing values
+    df_proc = df_proc.dropna(subset=features + [target])
+
+    # Filter for numeric delay
+    df_proc = df_proc[df_proc[target] >= 0]
+
+    # Encode categorical columns
+    encoders = {}
+    for col in ["AIRLINE_Description", "ORIGIN_CITY", "DEST_CITY", "DAY_OF_WEEK"]:
+        le = LabelEncoder()
+        # Convert to string to ensure consistent encoding
+        df_proc[col] = df_proc[col].astype(str)
+        df_proc[col] = le.fit_transform(df_proc[col])
+        encoders[col] = le
+
+    X = df_proc[features]
+    y = df_proc[target]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+
+    # Train model
+    # Using limited depth and estimators for interactivity speed
+    model = RandomForestRegressor(
+        n_estimators=50, max_depth=10, random_state=42, n_jobs=-1
+    )
+    model.fit(X_train, y_train)
+
+    # Evaluate
+    predictions = model.predict(X_test)
+    mae = mean_absolute_error(y_test, predictions)
+
+    return {
+        "model": model,
+        "encoders": encoders,
+        "mae": mae,
+        "X_train_columns": features,
+    }
+
+
+def predict_flight_delay(model_data, input_data):
+    """
+    Predicts delay for a given flight input.
+
+    Args:
+        model_data: Dictionary containing the trained model and encoders.
+        input_data: Dictionary with input features.
+
+    Returns:
+        float: Predicted delay in minutes.
+    """
+    model = model_data["model"]
+    encoders = model_data["encoders"]
+    features = model_data["X_train_columns"]
+
+    # Prepare input dataframe
+    input_df = pd.DataFrame([input_data])
+
+    # Apply encoders
+    for col, le in encoders.items():
+        if col in input_df.columns:
+            val = str(input_df.iloc[0][col])
+            # Handle unknown labels gracefully (assign to most frequent or 0)
+            if val in le.classes_:
+                input_df[col] = le.transform([val])
+            else:
+                # If unknown, use the first class code (often 0)
+                input_df[col] = 0
+
+    # Ensure correct column order
+    input_df = input_df[features]
+
+    prediction = model.predict(input_df)
+    return max(0, prediction[0])  # Delay shouldn't be negative

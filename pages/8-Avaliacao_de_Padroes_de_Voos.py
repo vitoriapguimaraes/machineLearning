@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from utils.ui import setup_sidebar, add_back_to_top
 from utils.load_file import load_dataset
 from utils.visualizations import COLOR_PALETTE
+from utils.models import train_flight_model, predict_flight_delay
 
 # --- Configuração Inicial ---
 st.set_page_config(page_title="Padrões em Voos", page_icon="✈️", layout="wide")
@@ -83,8 +84,14 @@ def create_basic_chart(data, x_col, y_col, title, orientation="v"):
 
 
 # --- Interface ---
-tab1, tab2, tab3, tab4 = st.tabs(
-    ["Visão Geral", "Sobre os dados", "Análise de Padrões", "Mapa de Rotas"]
+tab1, tab2, tab3, tab4, tab5 = st.tabs(
+    [
+        "Visão Geral",
+        "Sobre os dados",
+        "Análise de Padrões",
+        "Mapa de Rotas",
+        "Simulador",
+    ]
 )
 
 with tab1:
@@ -515,6 +522,112 @@ with tab4:
             **Como ler este mapa:**
             - **Cores das Linhas:** Indicam o horário médio dos voos na rota (Azul/Roxo: Noite/Madrugada - Laranja: Dia).
             - **Espessura:** Indica o atraso médio na rota (Mais grossa = Mais atraso).
-            - **Marcadores:** 🟢 Origem, 🔴 Destino, ⭐ Hubs Críticos.
+            - **Marcadores:** (Verde) Origem, (Vermelho) Destino, (*) Hubs Críticos.
             """
         )
+
+
+# --- TAB 5: Simulador ---
+with tab5:
+    st.subheader("Simulador de Atrasos")
+    st.markdown("Previsão de atrasos com base em Machine Learning (Random Forest).")
+
+    # Treinar/Carregar Modelo
+    @st.cache_resource
+    def get_trained_model(data):
+        return train_flight_model(data)
+
+    if not df.empty:
+        with st.spinner("Treinando modelo preditivo... (Isso acontece apenas uma vez)"):
+            model_data = get_trained_model(df)
+
+        if "mae" in model_data:
+            st.success(
+                f"Modelo treinado! Erro Médio Absoluto (MAE): {model_data['mae']:.2f} minutos"
+            )
+
+        # Layout: 2 colunas (Inputs | Resultado)
+        col_input, col_result = st.columns([2, 1])
+
+        with col_input:
+            with st.container(border=True):
+                st.subheader("Parâmetros do Voo")
+
+                # Split inputs for better density
+                c1, c2 = st.columns(2)
+                with c1:
+                    # Opções baseadas nos dados reais
+                    airlines = sorted(df["AIRLINE_Description"].unique().astype(str))
+                    origins = sorted(df["ORIGIN_CITY"].unique().astype(str))
+
+                    input_airline = st.selectbox("Companhia Aérea", airlines)
+                    input_origin = st.selectbox("Cidade de Origem", origins)
+
+                    possible_dests = sorted(
+                        df[df["ORIGIN_CITY"] == input_origin]["DEST_CITY"]
+                        .unique()
+                        .astype(str)
+                    )
+                    if not possible_dests:
+                        possible_dests = sorted(df["DEST_CITY"].unique().astype(str))
+                    input_dest = st.selectbox("Cidade de Destino", possible_dests)
+
+                with c2:
+                    input_dist = st.number_input(
+                        "Distância (milhas)", min_value=50, max_value=5000, value=500
+                    )
+                    input_day = st.selectbox(
+                        "Dia da Semana",
+                        [
+                            "Segunda-feira",
+                            "Terça-feira",
+                            "Quarta-feira",
+                            "Quinta-feira",
+                            "Sexta-feira",
+                            "Sábado",
+                            "Domingo",
+                        ],
+                        index=0,
+                    )
+                    input_time = st.slider("Horário da Partida (Hora)", 0, 23, 8)
+
+                st.markdown("---")
+                predict_btn = st.button(
+                    "Simular Atraso 🎲", type="primary", use_container_width=True
+                )
+
+        with col_result:
+            with st.container(border=True):
+                st.subheader("Resultado")
+
+                if predict_btn:
+                    input_data = {
+                        "AIRLINE_Description": input_airline,
+                        "ORIGIN_CITY": input_origin,
+                        "DEST_CITY": input_dest,
+                        "DISTANCE": input_dist,
+                        "DAY_OF_WEEK": input_day,
+                        "TIME_HOUR": input_time,
+                    }
+
+                    try:
+                        prediction = predict_flight_delay(model_data, input_data)
+
+                        st.metric("Atraso Estimado", f"{prediction:.0f} min")
+
+                        if prediction < 15:
+                            st.success("No Horário")
+                            st.caption("Atraso insignificante (< 15 min)")
+                        elif prediction < 45:
+                            st.warning("Atraso Moderado")
+                            st.caption("Pode impactar conexões.")
+                        else:
+                            st.error("Atraso Alto")
+                            st.caption("Grande chance de problemas.")
+
+                    except Exception as e:
+                        st.error(f"Erro: {e}")
+                else:
+                    st.info("Configure os parâmetros ao lado e clique em Simular.")
+    else:
+        st.warning("Dados não disponíveis para treinar o modelo.")
