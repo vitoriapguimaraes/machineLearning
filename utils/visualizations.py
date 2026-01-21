@@ -243,3 +243,80 @@ def plot_regression(
 
     fig.update_layout(height=500)
     st.plotly_chart(fig, use_container_width=True)
+
+
+def plot_forecast(
+    history_series,
+    forecast_series,
+    title="Previsão de Vendas",
+    x_label="Data",
+    y_label="Vendas",
+    history_label="Dados Históricos",
+    forecast_label="Previsão",
+):
+    """
+    Plots the historical data and the forecasted values.
+
+    Args:
+        history_series: pandas Series of historical data.
+        forecast_series: pandas Series of forecasted data.
+        title (str): Plot title.
+        x_label (str): X-axis label.
+        y_label (str): Y-axis label.
+        history_label (str): Label for the historical data trace.
+        forecast_label (str): Label for the forecast/fitted data trace.
+    """
+    import plotly.graph_objects as go
+
+    fig = go.Figure()
+
+    # Historical Data
+    fig.add_trace(
+        go.Scatter(
+            x=history_series.index,
+            y=history_series.values,
+            mode="lines",
+            name=history_label,
+            line=dict(color=COLOR_PALETTE[0]),
+        )
+    )
+
+    # Forecast Data
+    fig.add_trace(
+        go.Scatter(
+            x=forecast_series.index,
+            y=forecast_series.values,
+            mode="lines",
+            name=forecast_label,
+            line=dict(color=COLOR_PALETTE[1], dash="dash"),
+        )
+    )
+
+    fig.update_layout(
+        title=title,
+        xaxis_title=x_label,
+        yaxis_title=y_label,
+        height=500,
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+
+def plot_confusion_matrix(
+    cm, x_labels, y_labels, title="Matriz de Confusão", height=400, color_scale="Blues"
+):
+    """
+    Renderiza uma matriz de confusão.
+    """
+    fig = px.imshow(
+        cm,
+        text_auto=True,
+        aspect="equal",
+        color_continuous_scale=color_scale,
+        x=x_labels,
+        y=y_labels,
+        title=title,
+        labels=dict(x="Predito", y="Real", color="Qtd"),
+    )
+    fig.update_layout(height=height)
+    st.plotly_chart(fig, use_container_width=True)

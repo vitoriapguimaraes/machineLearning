@@ -34,18 +34,14 @@ model_data = get_trained_model(df)
 model = model_data["model"]
 
 # Tabs
-tab_overview, tab_analysis, tab_prediction = st.tabs(
-    ["Visão Geral", "Análise", "Previsão"]
-)
+tab1, tab2, tab3 = st.tabs(["Visão Geral", "Análise", "Previsão"])
 
-with tab_overview:
+with tab1:
+    st.subheader("Entendendo o Problema")
     st.markdown(
         """
-        ### Entendendo o Problema
         Este projeto aplica técnicas de **Regressão Linear Simples** para investigar a relação entre a área dos imóveis (em metros quadrados) e o valor do aluguel em uma cidade.
         O objetivo é prever o valor do aluguel a partir da área do imóvel.
-
-        **Destaques:**
         - **Variável Independente (X):** Área do imóvel (m²).
         - **Variável Dependente (y):** Valor do aluguel.
         """
@@ -57,8 +53,8 @@ with tab_overview:
     st.subheader("Estatísticas Descritivas")
     st.dataframe(df.describe(), use_container_width=True)
 
-with tab_analysis:
-    st.markdown("### Análise Exploratória")
+with tab2:
+    st.subheader("Análise Exploratória")
 
     show_univariate_grid(
         df,
@@ -68,7 +64,7 @@ with tab_analysis:
         num_cols=2,
     )
 
-    st.markdown("### Correlação e Regressão")
+    st.subheader("Correlação e Regressão")
     plot_regression(
         df,
         x_col="area_m2",
@@ -78,8 +74,8 @@ with tab_analysis:
         y_label="Valor do Aluguel (R$)",
     )
 
-with tab_prediction:
-    st.markdown("### Simulações")
+with tab3:
+    st.subheader("Simulações")
 
     col_input, col_result = st.columns([1, 2])
 
