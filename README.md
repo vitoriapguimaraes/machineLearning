@@ -13,16 +13,16 @@ Demonstrar a aplicação prática de técnicas avançadas de Machine Learning pa
 
 O portfólio está organizado em módulos independentes, acessíveis através de um **Multi-Page App**:
 
-| Projeto / Módulo           | Descrição e Aplicação                                                                          | Stack e Modelos        |
-| :------------------------- | :--------------------------------------------------------------------------------------------- | :--------------------- |
-| **💰 Predição de Salário** | Estimativa salarial baseada em anos de experiência e nível educacional (Polinomial).           | Scikit-Learn, Ply      |
-| **🏠 Previsão de Aluguel** | Modelo para estimar valores de imóveis com base em suas características físicas e localização. | Regressão Linear       |
-| **📈 Previsão de Vendas**  | Forecasting de séries temporais para planejamento de demanda e estoque.                        | Statsmodels (ETS/Holt) |
-| **💳 Score de Crédito**    | Classificação de risco de crédito para aprovação de empréstimos bancários.                     | Random Forest, KNN     |
-| **🤖 Trading Bot (RL)**    | Agente autônomo treinado com Q-Learning para operar no mercado financeiro (Simulação).         | Reinforcement Learning |
-| **👥 Rotatividade (RH)**   | Análise de fatores que levam ao _turnover_ e predição de saída de funcionários.                | XGBoost                |
-| **🏦 Risco Bancário**      | Avaliação detalhada de perfis de clientes para mitigação de riscos financeiros.                | Regressão Logística    |
-| **✈️ Padrões em Voos**     | Análise de tráfego aéreo e **Simulador de Atrasos** com Machine Learning.                      | Random Forest, Plotly  |
+| Projeto / Módulo    | Descrição e Aplicação                                                                          | Stack e Modelos        |
+| :------------------ | :--------------------------------------------------------------------------------------------- | :--------------------- |
+| Predição de Salário | Estimativa salarial baseada em anos de experiência e nível educacional (Polinomial).           | Scikit-Learn, Ply      |
+| Previsão de Aluguel | Modelo para estimar valores de imóveis com base em suas características físicas e localização. | Regressão Linear       |
+| Previsão de Vendas  | Forecasting de séries temporais para planejamento de demanda e estoque.                        | Statsmodels (ETS/Holt) |
+| Score de Crédito    | Classificação de risco de crédito para aprovação de empréstimos bancários.                     | Random Forest, KNN     |
+| Trading Bot (RL)    | Agente autônomo treinado com Q-Learning para operar no mercado financeiro (Simulação).         | Reinforcement Learning |
+| Rotatividade (RH)   | Análise de fatores que levam ao _turnover_ e predição de saída de funcionários.                | XGBoost                |
+| Risco Bancário      | Avaliação detalhada de perfis de clientes para mitigação de riscos financeiros.                | Regressão Logística    |
+| Padrões em Voos     | Análise de tráfego aéreo e Simulador de Atrasos com Machine Learning.                          | Random Forest, Plotly  |
 
 ## Tecnologias Utilizadas
 
