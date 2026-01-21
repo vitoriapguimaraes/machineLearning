@@ -1,59 +1,88 @@
-# Nome do Projeto
+# Machine Learning & AI Preditiva
 
-> Breve descrição do projeto em 2-3 frases, explicando o propósito, motivação e problema que resolve.
+> **Modelos que aprendem e preveem.**
+> Uma coleção de algoritmos de aprendizado supervisionado e por reforço aplicados a problemas reais de finanças, RH, engenharia e mercado imobiliário.
 
-![Demonstração do sistema](link-para-gif-ou-imagem)
+![Demonstração do Sistema](https://github.com/vitoriapguimaraes/machineLearning/blob/main/demo/navigation.gif)
 
-## Funcionalidades Principais
+## Objetivo
 
-- Liste as principais funcionalidades do projeto.
-- Destaque o que é inovador ou diferencial.
+Demonstrar a aplicação prática de técnicas avançadas de Machine Learning para resolução de problemas de negócio. Este repositório centraliza projetos que vão desde a previsão de valores (Regressão) e classificação de riscos até agentes autônomos de investimento (Reinforcement Learning), todos integrados em uma interface web interativa para facilitar a experimentação e visualização dos resultados.
 
-## Resultados e Conclusões
+## Projetos e Funcionalidades
 
-(Quando conter no projeto. Geralmente utilizado para projetos de datascience)
+O portfólio está organizado em módulos independentes, acessíveis através de um **Multi-Page App**:
+
+| Projeto / Módulo           | Descrição e Aplicação                                                                          | Stack e Modelos        |
+| :------------------------- | :--------------------------------------------------------------------------------------------- | :--------------------- |
+| **💰 Predição de Salário** | Estimativa salarial baseada em anos de experiência e nível educacional (Polinomial).           | Scikit-Learn, Ply      |
+| **🏠 Previsão de Aluguel** | Modelo para estimar valores de imóveis com base em suas características físicas e localização. | Regressão Linear       |
+| **📈 Previsão de Vendas**  | Forecasting de séries temporais para planejamento de demanda e estoque.                        | Statsmodels (ETS/Holt) |
+| **💳 Score de Crédito**    | Classificação de risco de crédito para aprovação de empréstimos bancários.                     | Random Forest, KNN     |
+| **🤖 Trading Bot (RL)**    | Agente autônomo treinado com Q-Learning para operar no mercado financeiro (Simulação).         | Reinforcement Learning |
+| **👥 Rotatividade (RH)**   | Análise de fatores que levam ao _turnover_ e predição de saída de funcionários.                | XGBoost                |
+| **🏦 Risco Bancário**      | Avaliação detalhada de perfis de clientes para mitigação de riscos financeiros.                | Regressão Logística    |
+| **✈️ Padrões em Voos**     | Análise de tráfego aéreo e **Simulador de Atrasos** com Machine Learning.                      | Random Forest, Plotly  |
 
 ## Tecnologias Utilizadas
 
-- Liste as principais tecnologias, frameworks e bibliotecas.
+- **Linguagem**: Python 3.10+
+- **Framework Web**: Streamlit
+- **Machine Learning**: Scikit-Learn, XGBoost, Statsmodels
+- **Manipulação de Dados**: Pandas, NumPy
+- **Visualização**: Plotly Express, Matplotlib, Seaborn
 
 ## Como Executar
 
-1. Clone o repositório:
-   ```
-   git clone https://github.com/usuario/repositorio.git
-   ```
-2. Instale as dependências:
-   ```
-   comando de instalação
-   ```
-3. Execute o projeto:
-   ```
-   comando para rodar
+Siga os passos abaixo para rodar a aplicação localmente:
+
+1. **Clone o repositório**
+
+   ```bash
+   git clone https://github.com/vitoriapguimaraes/dataScience.git
+   cd dataScience/machineLearning
    ```
 
-## Como Usar
+2. **Instale as dependências**
+   Recomenda-se usar um ambiente virtual (`venv`).
 
-- Explique como acessar e testar as principais funcionalidades.
-- Se necessário, inclua exemplos de uso ou prints.
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Execute a aplicação**
+
+   ```bash
+   streamlit run Painel.py
+   ```
+
+4. **Acesse no navegador**
+   O app abrirá automaticamente em: `http://localhost:8501`
 
 ## Estrutura de Diretórios
 
-```
-/nome-do-projeto
-├── src/
-├── data/
-├── results/
-└── README.md
+```dash
+machineLearning/
+├── data/                # Datasets brutos e processados
+├── notebooks/           # Jupyter Notebooks para treino e exploração
+├── pages/               # Páginas da aplicação Streamlit (cada projeto)
+│   ├── 1-Predicao_de_Salario_por_Estudos.py
+│   ├── 2-Previsao_Aluguel_Imoveis.py
+│   ├── 3-Previsao_de_Vendas.py
+│   ├── ...
+│   └── 8-Avaliacao_de_Padroes_de_Voos.py
+├── utils/               # Módulos auxiliares e modelos
+│   ├── load_file.py     # Carregamento de dados
+│   ├── models.py        # Definição e treino dos modelos ML
+│   ├── ui.py            # Componentes visuais
+│   └── visualizations.py # Gráficos
+├── Painel.py            # Página Inicial
+└── README.md            # Documentação
 ```
 
 ## Status
 
-- ✅ Concluído
-- 🛠️ Em manutenção
-- 🚧 Em desenvolvimento
-
-> Veja as [issues abertas](https://github.com/usuario/repositorio/issues) para sugestões de melhorias e próximos passos.
+✅ Concluído
 
 ## Mais Sobre Mim
 
