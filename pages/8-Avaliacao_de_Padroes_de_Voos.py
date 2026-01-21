@@ -84,7 +84,7 @@ def create_basic_chart(data, x_col, y_col, title, orientation="v"):
 
 # --- Interface ---
 tab1, tab2, tab3, tab4 = st.tabs(
-    ["Visão Geral", "Métricas", "Análise de Padrões", "Mapa de Rotas"]
+    ["Visão Geral", "Sobre os dados", "Análise de Padrões", "Mapa de Rotas"]
 )
 
 with tab1:
@@ -92,24 +92,19 @@ with tab1:
     st.subheader("Enunciado do Projeto")
     st.markdown(
         """
-        A **Datalab**, consultoria especializada em análise de dados, busca fornecer soluções analíticas de ponta. Neste contexto, a tomada de decisão informada é fundamental para o sucesso nos negócios.
+        Neste projeto, explora-se um conjunto de dados de aviação, demonstrando habilidades técnicas e analíticas. O foco é entender a dinâmica operacional de voos domésticos, apresentando insights que poderiam ser entregues a um cliente real para otimização de processos.
 
-        Neste projeto, atuamos como analistas convidados para explorar um conjunto de dados de aviação, demonstrando habilidades técnicas e analíticas. O foco é entender a dinâmica operacional de voos domésticos, apresentando insights que poderiam ser entregues a um cliente real para otimização de processos.
-        """
-    )
-    st.subheader("Objetivo do Projeto")
-    st.markdown(
-        """
         O objetivo deste estudo é **analisar padrões de atrasos, cancelamentos e desvios** em voos domésticos dos EUA (Janeiro/2023).
 
-        Buscamos identificar segmentos que diferenciam o comportamento operacional de **companhias aéreas**, **aeroportos** e **períodos de tempo**. O propósito final é gerar insights acionáveis que apoiem decisões estratégicas para melhorar a eficiência operacional e reduzir impactos negativos para passageiros e companhias.
+        A análise busca identificar segmentos que diferenciam o comportamento operacional de **companhias aéreas**, **aeroportos** e **períodos de tempo**. O propósito final é gerar insights acionáveis que apoiem decisões estratégicas para melhorar a eficiência operacional e reduzir impactos negativos para passageiros e companhias.
         """
     )
     st.subheader("Resultados e Conclusões")
     st.markdown(
+        "Foi analisado voos de ~30 dias, aplicando estatística descritiva e testes de hipótese."
+    )
+    st.markdown(
         """
-        Analisamos voos de ~30 dias, aplicando estatística descritiva e testes de hipótese.
-        
         **Principais Descobertas:**
         *   **Companhias Aéreas:** A **Southwest Airlines** lidera em volume de problemas. Companhias *low-cost* (Frontier, Spirit) têm atraso médio **1.6x maior** que as tradicionais.
         *   **Rotas Críticas:** As cidades de **Chicago, Denver, Atlanta e Dallas** são os maiores polos de atrasos e cancelamentos.
@@ -119,9 +114,9 @@ with tab1:
         """
     )
 
-# --- TAB 2: Métricas ---
+# --- TAB 2: Sobre os dados ---
 with tab2:
-    st.subheader("Métricas")
+    st.subheader("Sobre os dados")
 
     total_flights = len(df)
 
@@ -147,8 +142,10 @@ with tab2:
     c4.metric("% Cancelamentos", f"{pct_cancel_val:.1f}%")
     c5.metric("% Desvios", f"{pct_divert_val:.1f}%")
 
-    with st.expander("Ver amostra dos dados"):
-        st.dataframe(df.head(50))
+    st.dataframe(df.head(5))
+
+    st.subheader("Estatísticas Descritivas")
+    st.dataframe(df.describe())
 
 # --- TAB 3: Análise de Padrões ---
 with tab3:
@@ -269,89 +266,255 @@ with tab3:
         )
         st.plotly_chart(fig_hour, use_container_width=True)
 
+
+# --- Funções do Mapa (Portadas de app_streamlit.py) ---
+def _calcular_cor_horario(time_hour):
+    hora_normalizada = time_hour / 23.0
+    hue = 200 + (hora_normalizada * 80)
+    saturation = 60 + (hora_normalizada * 30)
+    if time_hour <= 12:
+        lightness = 30 + (time_hour / 12.0) * 40
+    else:
+        lightness = 70 - ((time_hour - 12) / 11.0) * 40
+
+    hue = max(0, min(hue, 360))
+    saturation = max(0, min(saturation, 100))
+    lightness = max(0, min(lightness, 100))
+
+    return f"hsl({hue:.0f}, {saturation:.0f}%, {lightness:.0f}%)"
+
+
+def _calcular_espessuras(rotas_data, col_metric):
+    min_metric = rotas_data[col_metric].min()
+    max_metric = rotas_data[col_metric].max()
+
+    if max_metric <= min_metric or pd.isna(min_metric) or pd.isna(max_metric):
+        return [3] * len(rotas_data)
+
+    espessuras = []
+    for valor in rotas_data[col_metric]:
+        if pd.isna(valor):
+            espessuras.append(3)
+            continue
+        metric_normalizada = (valor - min_metric) / (max_metric - min_metric)
+        espessura = 1.5 + (metric_normalizada**1.5) * 7
+        espessuras.append(max(1.5, min(espessura, 8.5)))
+
+    return espessuras
+
+
+def criar_mapa_rotas_avancado(df, top_n=30, selected_metric="DELAY_PER_DISTANCE"):
+
+    # Preparar dados
+    # Remover NaNs críticos
+    df_filtered = df.dropna(
+        subset=["ORIGIN_LAT", "ORIGIN_LON", "DEST_LAT", "DEST_LON", "DISTANCE"]
+    )
+
+    # Agrupar por rota
+    agg_dict = {
+        "DELAY_OVERALL": "mean",
+        "DELAY": "sum",
+        "CANCELLED": "sum",
+        "DIVERTED": "sum",
+        "DELAY_PER_DISTANCE": "mean",
+        "FL_DATE": "count",
+        "TIME_HOUR": "mean",
+    }
+
+    # Adicionar colunas faltantes se não existirem
+    for col in agg_dict.keys():
+        if col not in df_filtered.columns:
+            df_filtered[col] = 0
+
+    rotas_data = (
+        df_filtered.groupby(
+            [
+                "ORIGIN_CITY",
+                "DEST_CITY",
+                "ORIGIN_LAT",
+                "ORIGIN_LON",
+                "DEST_LAT",
+                "DEST_LON",
+                "DISTANCE",
+            ],
+            as_index=False,
+        )
+        .agg(agg_dict)
+        .rename(columns={"FL_DATE": "TOTAL_VOOS"})
+        .sort_values(by="TOTAL_VOOS", ascending=False)  # Default sort
+        .head(top_n)
+        .reset_index(drop=True)
+    )
+
+    if rotas_data.empty:
+        return go.Figure().update_layout(title="Sem dados para exibir")
+
+    fig = go.Figure()
+
+    # 1. Adicionar Estados Críticos (Marcadores Hexagonais)
+    estados_centros = {
+        "CA": {"lon": -119.4, "lat": 36.7, "nome": "Califórnia"},
+        "FL": {"lon": -81.5, "lat": 27.9, "nome": "Flórida"},
+        "TX": {"lon": -99.9, "lat": 31.0, "nome": "Texas"},
+        "CO": {"lon": -105.5, "lat": 39.0, "nome": "Colorado"},
+    }
+    for estado, dados in estados_centros.items():
+        fig.add_trace(
+            go.Scattergeo(
+                lon=[dados["lon"]],
+                lat=[dados["lat"]],
+                mode="markers+text",
+                marker=dict(
+                    size=25,
+                    color="rgba(255, 100, 100, 0.15)",
+                    symbol="hexagon",
+                    line=dict(width=1, color="rgba(255, 50, 50, 0.4)"),
+                ),
+                text=[estado],
+                textfont=dict(size=10, color="rgba(200, 0, 0, 0.6)"),
+                textposition="middle center",
+                hoverinfo="none",
+                showlegend=False,
+            )
+        )
+
+    # 2. Adicionar Rotas (Linhas Coloridas por Horário e Espessura por Atraso)
+    # Usando DELAY_OVERALL para espessura para ser visualmente impactante
+    espessuras = _calcular_espessuras(rotas_data, "DELAY_OVERALL")
+
+    for idx, rota in rotas_data.iterrows():
+        cor = _calcular_cor_horario(rota["TIME_HOUR"])
+
+        fig.add_trace(
+            go.Scattergeo(
+                lon=[rota["ORIGIN_LON"], rota["DEST_LON"]],
+                lat=[rota["ORIGIN_LAT"], rota["DEST_LAT"]],
+                mode="lines",
+                line=dict(width=espessuras[idx], color=cor),
+                name=f"{rota['ORIGIN_CITY']} -> {rota['DEST_CITY']}",
+                showlegend=False,
+                hovertemplate=(
+                    f"<b>{rota['ORIGIN_CITY']} -> {rota['DEST_CITY']}</b><br>"
+                    f"Atraso Médio: {rota['DELAY_OVERALL']:.1f} min<br>"
+                    f"Hora Média: {rota['TIME_HOUR']:.1f}h<br>"
+                    f"Total de Voos: {rota['TOTAL_VOOS']}<extra></extra>"
+                ),
+            )
+        )
+
+    # 3. Adicionar Marcadores de Origem (Verde) e Destino (Vermelho)
+    fig.add_trace(
+        go.Scattergeo(
+            lon=rotas_data["ORIGIN_LON"],
+            lat=rotas_data["ORIGIN_LAT"],
+            mode="markers",
+            marker=dict(size=6, color="green", line=dict(width=1, color="white")),
+            name="Origem",
+            hoverinfo="name+text",
+            text=rotas_data["ORIGIN_CITY"],
+            showlegend=False,
+        )
+    )
+    fig.add_trace(
+        go.Scattergeo(
+            lon=rotas_data["DEST_LON"],
+            lat=rotas_data["DEST_LAT"],
+            mode="markers",
+            marker=dict(size=6, color="red", line=dict(width=1, color="white")),
+            name="Destino",
+            hoverinfo="name+text",
+            text=rotas_data["DEST_CITY"],
+            showlegend=False,
+        )
+    )
+
+    # 4. Adicionar Cidades Críticas (Estrelas)
+    cidades_destaque = {
+        "Chicago": {"lat": 41.8781, "lon": -87.6298},
+        "Denver": {"lat": 39.7392, "lon": -104.9903},
+        "Atlanta": {"lat": 33.7490, "lon": -84.3880},
+        "Dallas": {"lat": 32.7767, "lon": -96.7970},
+    }
+    for cidade, coords in cidades_destaque.items():
+        fig.add_trace(
+            go.Scattergeo(
+                lon=[coords["lon"]],
+                lat=[coords["lat"]],
+                mode="markers",
+                marker=dict(
+                    size=8,
+                    color="gold",
+                    symbol="star",
+                    line=dict(width=1, color="orange"),
+                ),
+                name="Hub Crítico",
+                text=[cidade],
+                hovertemplate=f"<b>{cidade}</b> (Hub Crítico)<extra></extra>",
+                showlegend=False,
+            )
+        )
+
+    # Layout Setup
+    fig.update_layout(
+        title=dict(
+            text="<b>Mapa de Rotas e Gargalos Operacionais</b><br><sub>🎨 Cor da linha: Horário do voo | 📏 Espessura: Intensidade do Atraso</sub>",
+            x=0.5,
+        ),
+        geo=dict(
+            scope="usa",
+            projection_type="albers usa",
+            showland=True,
+            landcolor="rgb(243, 243, 238)",
+            showlakes=True,
+            lakecolor="rgb(220, 235, 255)",
+            showsubunits=True,
+            subunitcolor="rgb(220, 220, 220)",
+            bgcolor="rgba(0,0,0,0)",
+        ),
+        height=600,
+        margin=dict(l=0, r=0, t=80, b=0),
+    )
+
+    return fig
+
+
 # --- TAB 4: Mapa de Rotas ---
 with tab4:
     st.subheader("Mapa de Rotas Críticas")
-    st.caption("Visualização das rotas com maiores índices de problemas.")
+    st.caption(
+        "Visualização das rotas com maiores índices de problemas, coloridas por horário e espessura por atraso."
+    )
 
     qty_routes = st.slider("Quantidade de Rotas", 5, 100, 30)
 
-    # Verificar colunas de coordenadas
-    coord_cols = ["ORIGIN_LAT", "ORIGIN_LON", "DEST_LAT", "DEST_LON"]
-    missing_coords = [c for c in coord_cols if c not in df.columns]
+    # Garantir que as colunas necessárias existam
+    req_cols = ["ORIGIN_LAT", "ORIGIN_LON", "DEST_LAT", "DEST_LON"]
+    missing = [c for c in req_cols if c not in df.columns]
 
-    if missing_coords:
-        st.warning(
-            f"Coordenadas ausentes no dataset ({missing_coords}). O mapa não pode ser gerado corretamente."
-        )
+    if missing:
+        st.warning(f"Coordenadas ausentes: {missing}. O mapa não pode ser gerado.")
     else:
-        # Preparar dados para o mapa (Agrupado por Rota)
-        # Usar ORIGIN_CITY/DEST_CITY se existirem, senão ORIGIN/DEST
-        orig_key = "ORIGIN_CITY" if "ORIGIN_CITY" in df.columns else "ORIGIN"
-        dest_key = "DEST_CITY" if "DEST_CITY" in df.columns else "DEST"
-
-        route_grp = (
-            df.groupby(
-                [orig_key, dest_key, "ORIGIN_LAT", "ORIGIN_LON", "DEST_LAT", "DEST_LON"]
-            )
-            .agg(
-                avg_delay=("DELAY_OVERALL", "mean"), total_flights=("FL_DATE", "count")
-            )
-            .reset_index()
-        )
-
-        top_routes = route_grp.sort_values("avg_delay", ascending=False).head(
-            qty_routes
-        )
-
-        fig_map = go.Figure()
-
-        # Adicionar rotas (linhas)
-        for _, row in top_routes.iterrows():
-            fig_map.add_trace(
-                go.Scattergeo(
-                    lon=[row["ORIGIN_LON"], row["DEST_LON"]],
-                    lat=[row["ORIGIN_LAT"], row["DEST_LAT"]],
-                    mode="lines",
-                    line=dict(width=1.5, color="red"),
-                    opacity=0.6,
-                    hoverinfo="text",
-                    text=f"{row[orig_key]} -> {row[dest_key]} | Delay Médio: {row['avg_delay']:.1f} min",
-                    showlegend=False,
-                )
+        # Calcular coluna auxiliar DELAY_PER_DISTANCE se não existir
+        if (
+            "DELAY_PER_DISTANCE" not in df.columns
+            and "DELAY_OVERALL" in df.columns
+            and "DISTANCE" in df.columns
+        ):
+            df["DELAY_PER_DISTANCE"] = df["DELAY_OVERALL"] / df["DISTANCE"].replace(
+                0, 1
             )
 
-        # Adicionar Aeroportos (pontos)
-        origins = top_routes[[orig_key, "ORIGIN_LAT", "ORIGIN_LON"]].rename(
-            columns={orig_key: "CODE", "ORIGIN_LAT": "LAT", "ORIGIN_LON": "LON"}
-        )
-        dests = top_routes[[dest_key, "DEST_LAT", "DEST_LON"]].rename(
-            columns={dest_key: "CODE", "DEST_LAT": "LAT", "DEST_LON": "LON"}
-        )
-        airports = pd.concat([origins, dests]).drop_duplicates()
+        # Gerar Mapa Avançado
+        with st.spinner("Gerando mapa complexo..."):
+            fig_map = criar_mapa_rotas_avancado(df, top_n=qty_routes)
+            st.plotly_chart(fig_map, use_container_width=True)
 
-        fig_map.add_trace(
-            go.Scattergeo(
-                lon=airports["LON"],
-                lat=airports["LAT"],
-                text=airports["CODE"],
-                mode="markers",
-                marker=dict(size=5, color="blue"),
-                hoverinfo="text",
-                name="Aeroportos",
-            )
+        st.info(
+            """
+            **Como ler este mapa:**
+            - **Cores das Linhas:** Indicam o horário médio dos voos na rota (Azul/Roxo: Noite/Madrugada - Laranja: Dia).
+            - **Espessura:** Indica o atraso médio na rota (Mais grossa = Mais atraso).
+            - **Marcadores:** 🟢 Origem, 🔴 Destino, ⭐ Hubs Críticos.
+            """
         )
-
-        fig_map.update_layout(
-            title_text="Rotas com Maior Atraso Médio",
-            geo=dict(
-                scope="usa",
-                projection_type="albers usa",
-                showland=True,
-                landcolor="rgb(240, 240, 240)",
-            ),
-            height=600,
-            margin={"r": 0, "t": 40, "l": 0, "b": 0},
-        )
-
-        st.plotly_chart(fig_map, use_container_width=True)
