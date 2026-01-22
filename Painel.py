@@ -5,6 +5,7 @@ from utils.ui import setup_sidebar, add_back_to_top
 st.set_page_config(page_title="Machine Learning", page_icon="🤖", layout="wide")
 
 add_back_to_top()
+setup_sidebar()
 
 st.title("Machine Learning")
 
@@ -84,5 +85,3 @@ st.markdown(
     - **Análise de Negócio:** Risk Scoring e Cálculo de Risco Relativo (RR).
     """
 )
-
-setup_sidebar()

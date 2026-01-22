@@ -13,7 +13,7 @@ Demonstrar a aplicação prática de técnicas avançadas de Machine Learning pa
 
 O portfólio está organizado em módulos independentes, acessíveis através de um **Multi-Page App**:
 
-| Projeto / Módulo    | Descrição e Aplicação                                                                          | Stack e Modelos        |
+| Módulo    | Descrição e Aplicação                                                                          | Stack e Modelos        |
 | :------------------ | :--------------------------------------------------------------------------------------------- | :--------------------- |
 | Predição de Salário | Estimativa salarial baseada em anos de experiência e nível educacional (Polinomial).           | Scikit-Learn, Ply      |
 | Previsão de Aluguel | Modelo para estimar valores de imóveis com base em suas características físicas e localização. | Regressão Linear       |
